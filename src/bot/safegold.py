@@ -29,10 +29,10 @@ async def cmd_safegold(message: Message):
             logger.warning("Unauthorized /safegold in Chat ID: %s", message.chat.id)
             return
 
-        # Check for cache argument
-        use_cache = False
-        if message.text and "cache" in message.text.lower():
-            use_cache = True
+        # Default to using cache. Only disable if 'no-cache' is explicitly provided.
+        use_cache = True
+        if message.text and "no-cache" in message.text.lower():
+            use_cache = False
 
         status_text = "⏳ Fetching SafeGold price (cache=Off)..." if not use_cache else "⏳ Fetching SafeGold price (cache=On)..."
         status_message = None

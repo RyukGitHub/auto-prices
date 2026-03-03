@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 async def run_robot():
     """Run robot framework and return stdout."""
-    cmd = [sys.executable, "-m", "robot", "--outputdir", "logs", "tests/robot/sg.robot"]
+    cmd = [sys.executable, "-m", "robot", "--outputdir", "robot-results", "tests/robot/sg.robot"]
     process = subprocess.run(cmd, capture_output=True, text=True)
     return process.stdout, process.stderr, process.returncode
 

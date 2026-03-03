@@ -91,7 +91,7 @@ async def trigger_quote():
 
 
 @app.get("/safegold")
-async def trigger_safegold(cache: bool = False):
+async def trigger_safegold(cache: bool = True):
     """Execute SafeGold Robot test and notify Telegram."""
     try:
         return await process_safegold_and_notify(use_cache=cache)

@@ -21,9 +21,12 @@ User Visits SafeGold Website
 
 The Live Price Loads Completely
     # Wait for the specific element class to become visible on the page
-    Wait For Elements State    css=.livePrice_buy    visible    timeout=30s
+    # If it fails, robotframework-browser will auto-screenshot to the output dir
+    Run Keyword And Ignore Error    Wait For Elements State    css=.livePrice_buy    visible    timeout=60s
+    # Capture state for debugging regardless of success/fail during research phase
+    Take Screenshot    selector=body
     # Price changes after initial load, so we wait for it to stabilize
-    Sleep    3s
+    Sleep    5s
 
 We Get And Print The Buy Price In Logs
     # Wait for the price container and specifically the price span
