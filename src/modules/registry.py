@@ -1,3 +1,4 @@
+"""Silently tracks all observed Telegram chats in a local JSON registry file."""
 import json
 import logging
 from aiogram import Router
@@ -9,22 +10,27 @@ router = Router(name="registry")
 
 DB_FILE = "registered_chats.json"
 
+
 def load_registry():
+    """Load the registry JSON from disk, returning an empty dict on failure."""
     try:
-        with open(DB_FILE, "r") as f:
+        with open(DB_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
         return {}
-    except Exception as e:
-        logger.error(f"Error loading {DB_FILE}: {e}")
+    except Exception as e:  # pylint: disable=broad-except
+        logger.error("Error loading %s: %s", DB_FILE, e)
         return {}
 
+
 def save_registry(data):
+    """Persist the registry dict to disk as JSON."""
     try:
-        with open(DB_FILE, "w") as f:
+        with open(DB_FILE, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
-    except Exception as e:
-        logger.error(f"Error saving {DB_FILE}: {e}")
+    except Exception as e:  # pylint: disable=broad-except
+        logger.error("Error saving %s: %s", DB_FILE, e)
+
 
 @router.channel_post(Command("getall"))
 @router.message(Command("getall"))
@@ -34,27 +40,31 @@ async def cmd_getall(message: Message):
     """
     # Only allow fetching from private chats or public groups/channels if permitted
     registry = load_registry()
-    
+
     try:
         if not registry:
-            await message.reply("The chat registry is currently empty. The bot hasn't observed any messages in other channels yet.")
+            await message.reply(
+                "The chat registry is currently empty. "
+                "The bot hasn't observed any messages in other channels yet."
+            )
             return
-    
+
         response = "🕷️ **Chat Registry:**\n\n"
         for chat_id, data in registry.items():
             title = data.get("title", "Unknown Chat")
             ctype = data.get("type", "unknown")
             response += f"• **{title}** (`{ctype}`)\n  ID: `{chat_id}`\n\n"
-    
+
         try:
             await message.reply(response, parse_mode="Markdown")
-        except Exception as e:
-            logger.error(f"Failed to send /getall response: {e}")
+        except Exception as e:  # pylint: disable=broad-except
+            logger.error("Failed to send /getall response: %s", e)
     finally:
         try:
             await message.delete()
         except BaseException:
             pass
+
 
 @router.channel_post()
 @router.message()
@@ -80,4 +90,4 @@ async def spider_logger(message: Message):
             "type": chat_type
         }
         save_registry(registry)
-        logger.info(f"[SPIDER] Successfully cached new/updated chat footprint: '{chat_title}' ({chat_id})")
+        logger.info("[SPIDER] Cached chat: '%s' (%s)", chat_title, chat_id)

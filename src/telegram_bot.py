@@ -1,14 +1,20 @@
-import aiohttp
+"""Async Telegram messaging client for broadcasting price updates via the Bot API."""
 import os
 from typing import Dict, Any
 
-async def send_telegram_message(gold_buy: str, silver_buy: str, gold_sell: str, silver_sell: str) -> Dict[str, Any]:
-    """
-    Broadcasts the newly formatted price data matrix to the configured Telegram Chat.
-    """
+import aiohttp
+
+
+async def send_telegram_message(
+    gold_buy: str,
+    silver_buy: str,
+    gold_sell: str,
+    silver_sell: str,
+) -> Dict[str, Any]:
+    """Broadcasts the formatted Buy/Sell price matrix to the configured Telegram Chat."""
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
-    
+
     if not bot_token or not chat_id:
         raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set in .env")
 

@@ -1,13 +1,18 @@
-import uvicorn
-from fastapi import FastAPI, HTTPException
-from dotenv import load_dotenv
-
-from src.price_service import process_prices_and_notify
-
-from aiogram import Bot, Dispatcher
-import os
+"""FastAPI entry point: exposes /health and /trigger, and runs the Aiogram polling loop."""
 import asyncio
 import logging
+import os
+from contextlib import asynccontextmanager
+
+from aiogram import Bot, Dispatcher
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+
+from src.modules.purge import router as purge_router
+from src.modules.registry import router as registry_router
+from src.modules.start import router as start_router
+from src.modules.trigger import router as command_trigger_router
+from src.price_service import process_prices_and_notify
 
 # Configure standardized logging for the entire application
 logging.basicConfig(
@@ -16,12 +21,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Load the Routers
-from src.modules.purge import router as purge_router
-from src.modules.start import router as start_router
-from src.modules.registry import router as registry_router
-from src.modules.trigger import router as command_trigger_router
-
 # Load environment variables
 load_dotenv()
 
@@ -29,57 +28,58 @@ bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
 if not bot_token:
     raise ValueError("TELEGRAM_BOT_TOKEN must be set in .env")
 
-# Initialize Aiogram
+# Initialize Aiogram Bot and Dispatcher
 bot = Bot(token=bot_token)
 dp = Dispatcher()
 
-# Include routers
+# Include routers (registry LAST — wildcard listener must not intercept other commands)
 dp.include_router(purge_router)
 dp.include_router(start_router)
 dp.include_router(command_trigger_router)
-# Include registry LAST because it contains a wildcard message listener that intercepts everything!
 dp.include_router(registry_router)
 
-from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Start the aiogram bot polling in the background when FastAPI starts
+    """Manage the Aiogram polling lifecycle alongside the FastAPI server."""
     bot_task = asyncio.create_task(dp.start_polling(bot))
-    
-    # Notify chat that deployment is successful and bot is alive
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
-    if chat_id:
+
+    # Notify the Telegram channel that the service has started
+    startup_chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    if startup_chat_id:
         try:
             await bot.send_message(
-                chat_id=chat_id, 
-                text="🚀 **Deployment Successful**", 
+                chat_id=startup_chat_id,
+                text="🚀 **Deployment Successful**",
                 parse_mode="Markdown"
             )
             logger.info("Sent startup notification to Telegram.")
-        except Exception as e:
-            logger.error(f"Failed to send startup notification: {e}")
-            
+        except Exception as e:  # pylint: disable=broad-except
+            logger.error("Failed to send startup notification: %s", e)
+
     yield
-    # Cleanup when FastAPI shuts down
+
+    # Graceful shutdown
     bot_task.cancel()
     try:
         await bot_task
     except asyncio.CancelledError:
         pass
 
+
 app = FastAPI(title="Fetcher", lifespan=lifespan)
+
 
 @app.get("/health")
 def health_check():
     """Health endpoint to verify the web service is running."""
     return {"status": "ok", "message": "Service is healthy"}
 
+
 @app.get("/trigger")
 async def trigger_quote():
+    """Fetch the latest prices and notify Telegram."""
     try:
-        # Run the shared price logic
-        response = await process_prices_and_notify()
-        return response
+        return await process_prices_and_notify()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

@@ -1,5 +1,7 @@
-from curl_cffi import requests
+"""Async HTTP client for fetching gold and silver price."""
 from typing import Dict, Any
+
+from curl_cffi import requests
 
 API_URL = 'https://www.mmtcpamp.com/api/getQuote'
 COMMON_HEADERS = {
@@ -26,9 +28,10 @@ COMMON_HEADERS = {
     )
 }
 
+
 async def get_quote(currency_pair: str = "XAU/INR", quote_type: str = "BUY") -> Dict[str, Any]:
     """
-    Fetches the latest pricing quote asynchronously from MMTC PAMP.
+    Fetches the latest pricing quote asynchronously.
     Bypasses WAF protections by impersonating Chrome's TLS fingerprint.
     """
     payload = {
@@ -36,7 +39,7 @@ async def get_quote(currency_pair: str = "XAU/INR", quote_type: str = "BUY") -> 
         "type": quote_type
     }
 
-    # impersonate="chrome110" makes our requests look exactly like a real Chrome browser at the TLS handshake level
+    # impersonate="chrome110" spoofs Chrome's TLS fingerprint to bypass WAF blocks
     async with requests.AsyncSession(impersonate="chrome110") as session:
         response = await session.post(API_URL, headers=COMMON_HEADERS, json=payload)
         response.raise_for_status()
