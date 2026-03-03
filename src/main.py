@@ -53,7 +53,7 @@ async def lifespan(app: FastAPI):
         try:
             await bot.send_message(
                 chat_id=chat_id, 
-                text="🚀 **Deployment Successful**\nI am online and running!", 
+                text="🚀 **Deployment Successful**", 
                 parse_mode="Markdown"
             )
             logger.info("Sent startup notification to Telegram.")
@@ -76,10 +76,10 @@ def health_check():
     return {"status": "ok", "message": "Service is healthy"}
 
 @app.get("/trigger")
-def trigger_quote():
+async def trigger_quote():
     try:
         # Run the shared price logic
-        response = process_prices_and_notify()
+        response = await process_prices_and_notify()
         return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

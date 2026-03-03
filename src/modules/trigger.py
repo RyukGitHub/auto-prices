@@ -38,7 +38,7 @@ async def cmd_trigger(message: Message):
     try:
         # Run the same core code the FastAPI endpoint uses!
         # This will send the actual message out to TELEGRAM_CHAT_ID natively
-        process_prices_and_notify()
+        await process_prices_and_notify()
         
         # We can clean up our status message since it worked
         if status_message:
