@@ -46,6 +46,20 @@ from contextlib import asynccontextmanager
 async def lifespan(app: FastAPI):
     # Start the aiogram bot polling in the background when FastAPI starts
     bot_task = asyncio.create_task(dp.start_polling(bot))
+    
+    # Notify chat that deployment is successful and bot is alive
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    if chat_id:
+        try:
+            await bot.send_message(
+                chat_id=chat_id, 
+                text="🚀 **Deployment Successful**\nI am online and running!", 
+                parse_mode="Markdown"
+            )
+            logger.info("Sent startup notification to Telegram.")
+        except Exception as e:
+            logger.error(f"Failed to send startup notification: {e}")
+            
     yield
     # Cleanup when FastAPI shuts down
     bot_task.cancel()

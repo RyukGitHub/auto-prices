@@ -18,9 +18,9 @@ async def cmd_start(message: Message):
     try:
         if message.chat.type == "channel":
             # Channels shouldn't use direct "reply" structure unless tied to a discussion board
-            await message.bot.send_message(chat_id=message.chat.id, text="🤖 ACH Automation Bot is online and ready!")
+            await message.bot.send_message(chat_id=message.chat.id, text="🤖 I am online and ready!")
         else:
-            await message.reply("🤖 ACH Automation Bot is online and ready!")
+            await message.reply("🤖 I am online and ready!")
     except Exception as e:
         logger.error(f"Failed to respond to /start command: {e}")
 
