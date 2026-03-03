@@ -50,6 +50,13 @@ jobs:
         run: |
           python src/scripts/run_safegold_action.py
 
+      - name: Upload Robot Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-logs
+          path: robot-results/
+
       - name: Save Playwright Browser Binaries
         if: always() && github.event.inputs.use_cache == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
