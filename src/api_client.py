@@ -43,6 +43,8 @@ async def get_quote(currency_pair: str = "XAU/INR", quote_type: str = "BUY") -> 
 
     # impersonate="chrome110" spoofs Chrome's TLS fingerprint to bypass WAF blocks
     async with requests.AsyncSession(impersonate="chrome110") as session:
+        response = await session.post(API_URL, headers=COMMON_HEADERS, json=payload)
+        response.raise_for_status()
         return response.json()
 
 
