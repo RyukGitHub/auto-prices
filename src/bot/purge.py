@@ -1,7 +1,6 @@
 """Purge command handler: bulk-deletes recent messages in Groups and Channels."""
 import logging
 import asyncio
-from typing import List
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
@@ -57,7 +56,7 @@ async def _purge_by_reply(message: Message):
 
 
 async def _purge_by_count(message: Message):
-    """Deletes a specific number of recent messages."""
+    """Deletes a specific number of recent messages. Note: deletes based on ID tracking."""
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2 or not parts[1].isdigit():
         warning = await message.reply(
@@ -74,18 +73,30 @@ async def _purge_by_count(message: Message):
     count = int(parts[1])
     if count <= 0:
         return
+        
+    # Give user feedback since ID sweeping isn't instant
+    status_msg = await message.reply(f"🧹 Sweeping last {count} message IDs...")
 
-    deleted_count = 0
     search_id = message.message_id
     chat_id = message.chat.id
-
+    
+    # We must sweep 'count' number of IDs backwards. 
+    # Because telegram silently ignores missing IDs in bulk_delete, 
+    # we just provide the chunks!
+    deleted_count = 0
     while deleted_count < count and search_id > 0:
         chunk_needed = min(100, count - deleted_count)
         chunk_ids = list(range(max(1, search_id - chunk_needed + 1), search_id + 1))
 
         try:
             await message.bot.delete_messages(chat_id=chat_id, message_ids=chunk_ids)
-            deleted_count += len(chunk_ids)
-        except TelegramBadRequest:
-            pass
+        except TelegramBadRequest as err:
+            logger.warning("Partial failure during bulk purge by count. Error: %s", err)
+            
+        deleted_count += chunk_needed
         search_id -= chunk_needed
+        
+    try:
+        await status_msg.delete()
+    except Exception:  # pylint: disable=broad-except
+        pass

@@ -11,6 +11,7 @@ from fastapi import FastAPI, HTTPException
 from src.bot.purge import router as purge_router
 from src.bot.registry import router as registry_router
 from src.bot.start import router as start_router
+from src.bot.getall_cmd import router as getall_router
 from src.bot.trigger import router as command_trigger_router
 from src.bot.safegold import router as safegold_router
 from src.bot.deleter import router as deleter_router
@@ -40,6 +41,7 @@ dp.include_router(purge_router)
 dp.include_router(start_router)
 dp.include_router(command_trigger_router)
 dp.include_router(safegold_router)
+dp.include_router(getall_router)
 dp.include_router(deleter_router)
 dp.include_router(registry_router)
 
@@ -55,7 +57,7 @@ async def lifespan(_: FastAPI):
         try:
             await bot.send_message(
                 chat_id=startup_chat_id,
-                text="🚀 **Deployment Successful**",
+                text="🚀 *Deployment Successful*",
                 parse_mode="Markdown"
             )
             logger.info("Sent startup notification to Telegram.")

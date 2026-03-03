@@ -1,8 +1,5 @@
 fastapi
 uvicorn
 python-dotenv
-robotframework
-aiogram
-aiohttp
 curl-cffi
-robotframework-browser
+

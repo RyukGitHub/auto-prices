@@ -1,3 +1,4 @@
+"""Service layer for fetching SafeGold prices via direct API and notifying Telegram."""
 import logging
 from src.api_client import get_safegold_quote
 from src.telegram_bot import send_custom_message
@@ -34,12 +35,12 @@ async def process_safegold_and_notify(use_cache: bool = True) -> dict:  # pylint
 
         return {
             "status": "success",
-            "message": f"SafeGold price fetched: {price_str}",
+            "message": f"SG price fetched and Telegram channel notified successfully.",
         }
 
     except Exception as e:
-        logger.error("SafeGold fetch failed: %s", e, exc_info=True)
+        logger.error("SG fetch failed: %s", e, exc_info=True)
         return {
             "status": "error",
-            "message": f"Failed to fetch SafeGold price: {str(e)}"
+            "message": f"Failed to fetch SG price: {str(e)}"
         }

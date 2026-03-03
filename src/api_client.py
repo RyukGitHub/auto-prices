@@ -43,9 +43,8 @@ async def get_quote(currency_pair: str = "XAU/INR", quote_type: str = "BUY") -> 
 
     # impersonate="chrome110" spoofs Chrome's TLS fingerprint to bypass WAF blocks
     async with requests.AsyncSession(impersonate="chrome110") as session:
-        response = await session.post(API_URL, headers=COMMON_HEADERS, json=payload)
-        response.raise_for_status()
         return response.json()
+
 
 async def get_safegold_quote() -> Dict[str, Any]:
     """
@@ -68,7 +67,7 @@ async def get_safegold_quote() -> Dict[str, Any]:
 
         # 2. Fetch Buy Rate (Base64 for 'buy-rate')
         payload = {"csrf": tid, "upi": 0}
-        buy_url = "https://www.safegold.com/YnV5LXJhdGU=" 
+        buy_url = "https://www.safegold.com/YnV5LXJhdGU="
         
         response = await session.post(buy_url, headers=headers, json=payload)
         response.raise_for_status()

@@ -34,7 +34,10 @@ async def cmd_safegold(message: Message):
         if message.text and "no-cache" in message.text.lower():
             use_cache = False
 
-        status_text = "⏳ Fetching SafeGold price (cache=Off)..." if not use_cache else "⏳ Fetching SafeGold price (cache=On)..."
+        status_text = (
+            "⏳ Fetching SG price (cache=Off)..." if not use_cache
+            else "⏳ Fetching SG price (cache=On)..."
+        )
         status_message = None
         if message.chat.type != "channel":
             try:
@@ -49,8 +52,8 @@ async def cmd_safegold(message: Message):
                 await status_message.delete()
 
         except Exception as err:
-            logger.error("Error during SafeGold manual trigger: %s", err)
-            error_text = f"❌ Failed to fetch SafeGold price: `{err}`"
+            logger.error("Error during SG manual trigger: %s", err)
+            error_text = f"❌ Failed to fetch SG price: `{err}`"
 
             if status_message:
                 await status_message.edit_text(error_text, parse_mode="Markdown")
