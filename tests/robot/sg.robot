@@ -1,5 +1,6 @@
 *** Settings ***
-Library    Browser
+Library    Browser    timeout=60s    enable_playwright_debug=True
+Library    BuiltIn
 
 *** Variables ***
 ${URL}    https://www.safegold.com/
@@ -13,8 +14,9 @@ Fetch SafeGold Buy Price
 *** Keywords ***
 User Visits SafeGold Website
     # Initialize a headless Chromium browser using robotframework-browser
-    New Browser    chromium    headless=True    timeout=60s
-    New Context
+    New Browser    chromium    headless=True    timeout=120s
+    New Context    viewport={'width': 1920, 'height': 1080}
+    # Use networkidle for full AngularJS/API binding completion
     New Page    ${URL}    wait_until=networkidle
 
 The Live Price Loads Completely

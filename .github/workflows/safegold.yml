@@ -41,8 +41,7 @@ jobs:
       - name: Initialize Browser
         if: steps.playwright-cache.outputs.cache-hit != 'true' || github.event.inputs.use_cache != 'true'
         run: |
-          npx playwright install-deps
-          python -m Browser.entry init
+          sudo python -m Browser.entry init --install-deps
 
       - name: Run Robot Test
         env:
