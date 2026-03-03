@@ -19,8 +19,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Initialize RF Browser (installs browser binaries)
-RUN rfbrowser init
+# Initialize RF Browser (installs browser binaries and system deps)
+RUN rfbrowser init && npx playwright install-deps chromium
 
 # Copy the rest of the application
 COPY . .

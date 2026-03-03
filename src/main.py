@@ -45,7 +45,7 @@ dp.include_router(deleter_router)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_: FastAPI):
     """Manage the Aiogram polling lifecycle alongside the FastAPI server."""
     bot_task = asyncio.create_task(dp.start_polling(bot))
 
@@ -59,8 +59,8 @@ async def lifespan(app: FastAPI):
                 parse_mode="Markdown"
             )
             logger.info("Sent startup notification to Telegram.")
-        except Exception as e:  # pylint: disable=broad-except
-            logger.error("Failed to send startup notification: %s", e)
+        except Exception as err:  # pylint: disable=broad-except
+            logger.error("Failed to send startup notification: %s", err)
 
     yield
 
