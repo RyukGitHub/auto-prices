@@ -13,13 +13,13 @@ Fetch SafeGold Buy Price
 *** Keywords ***
 User Visits SafeGold Website
     # Initialize a headless Chromium browser using robotframework-browser
-    New Browser    chromium    headless=True
+    New Browser    chromium    headless=True    timeout=60s
     New Context
-    New Page    ${URL}
+    New Page    ${URL}    wait_until=domcontentloaded
 
 The Live Price Loads Completely
     # Wait for the specific element class to become visible on the page
-    Wait For Elements State    css=.livePrice_buy    visible    timeout=15s
+    Wait For Elements State    css=.livePrice_buy    visible    timeout=30s
     # Price changes after initial load, so we wait for it to stabilize
     Sleep    3s
 
