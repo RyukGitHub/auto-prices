@@ -16,6 +16,7 @@ async def cmd_safegold(message: Message):
     """
     Triggers the SafeGold price fetch sequence.
     Restricted to messages sent from TELEGRAM_CHAT_ID.
+    Usage: /safegold (no cache) or /safegold cache (with cache)
     """
     authorized_chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
@@ -28,22 +29,28 @@ async def cmd_safegold(message: Message):
             logger.warning("Unauthorized /safegold in Chat ID: %s", message.chat.id)
             return
 
+        # Check for cache argument
+        use_cache = False
+        if message.text and "cache" in message.text.lower():
+            use_cache = True
+
+        status_text = "⏳ Fetching SafeGold price (cache=Off)..." if not use_cache else "⏳ Fetching SafeGold price (cache=On)..."
         status_message = None
         if message.chat.type != "channel":
             try:
-                status_message = await message.reply("⏳ Fetching SafeGold price...")
-            except BaseException:
+                status_message = await message.reply(status_text)
+            except Exception: # pylint: disable=broad-except
                 pass
 
         try:
-            await process_safegold_and_notify()
+            await process_safegold_and_notify(use_cache=use_cache)
 
             if status_message:
                 await status_message.delete()
 
-        except Exception as e:
-            logger.error("Error during SafeGold manual trigger: %s", e)
-            error_text = f"❌ Failed to fetch SafeGold price: `{e}`"
+        except Exception as err:
+            logger.error("Error during SafeGold manual trigger: %s", err)
+            error_text = f"❌ Failed to fetch SafeGold price: `{err}`"
 
             if status_message:
                 await status_message.edit_text(error_text, parse_mode="Markdown")
@@ -52,5 +59,5 @@ async def cmd_safegold(message: Message):
     finally:
         try:
             await message.delete()
-        except BaseException:
+        except Exception: # pylint: disable=broad-except
             pass

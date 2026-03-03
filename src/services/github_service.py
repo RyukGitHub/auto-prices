@@ -4,7 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-async def trigger_safegold_workflow():
+async def trigger_safegold_workflow(use_cache: bool = True):
     """Triggers the GitHub Action workflow using a Personal Access Token."""
     pat = os.getenv("GITHUB_PAT")
     repo = "RyukGitHub/auto-prices"
@@ -21,7 +21,10 @@ async def trigger_safegold_workflow():
         "X-GitHub-Api-Version": "2022-11-28",
     }
     data = {
-        "ref": "master", # or the branch name
+        "ref": "master",  # or the branch name
+        "inputs": {
+            "use_cache": str(use_cache).lower()
+        }
     }
 
     async with aiohttp.ClientSession() as session:

@@ -4,13 +4,13 @@ from src.services.github_service import trigger_safegold_workflow
 logger = logging.getLogger(__name__)
 
 
-async def process_safegold_and_notify() -> dict:
+async def process_safegold_and_notify(use_cache: bool = True) -> dict:
     """
     Triggers the SafeGold price fetching workflow on GitHub Actions.
     """
     try:
-        logger.info("Triggering SafeGold fetch on GitHub Actions...")
-        result = await trigger_safegold_workflow()
+        logger.info("Triggering SafeGold fetch on GitHub Actions (cache=%s)...", use_cache)
+        result = await trigger_safegold_workflow(use_cache=use_cache)
         
         if result["status"] == "success":
             return {

@@ -91,9 +91,9 @@ async def trigger_quote():
 
 
 @app.get("/safegold")
-async def trigger_safegold():
+async def trigger_safegold(cache: bool = False):
     """Execute SafeGold Robot test and notify Telegram."""
     try:
-        return await process_safegold_and_notify()
+        return await process_safegold_and_notify(use_cache=cache)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
