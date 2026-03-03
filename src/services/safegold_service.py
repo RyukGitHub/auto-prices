@@ -1,7 +1,7 @@
-"""Service to run SafeGold Robot tests and notify Telegram with the results."""
 import asyncio
 import logging
 import re
+import sys
 from src.telegram_bot import send_custom_message
 from src.database import db
 
@@ -15,8 +15,8 @@ async def process_safegold_and_notify() -> dict:
     """
     try:
         # 1. Run the Robot test
-        # We use the absolute path to the virtual env's robot script
-        cmd = [".venv/Scripts/robot", "--outputdir", "logs", "tests/robot/sg.robot"]
+        # Use sys.executable -m robot for cross-platform compatibility (Windows/Linux)
+        cmd = [sys.executable, "-m", "robot", "--outputdir", "logs", "tests/robot/sg.robot"]
         process = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
