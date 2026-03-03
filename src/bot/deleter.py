@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 router = Router(name="deleter")
 
 
+@router.channel_post()
 @router.message()
 async def cmd_unknown(message: types.Message):
     """

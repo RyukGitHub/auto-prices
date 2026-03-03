@@ -5,3 +5,4 @@ robotframework
 aiogram
 aiohttp
 curl-cffi
+robotframework-browser
