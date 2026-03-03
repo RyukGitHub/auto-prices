@@ -1,4 +1,4 @@
-import aiohttp
+from curl_cffi import requests
 from typing import Dict, Any
 
 API_URL = 'https://www.mmtcpamp.com/api/getQuote'
@@ -21,13 +21,15 @@ COMMON_HEADERS = {
 async def get_quote(currency_pair: str = "XAU/INR", quote_type: str = "BUY") -> Dict[str, Any]:
     """
     Fetches the latest pricing quote asynchronously from MMTC PAMP.
+    Bypasses WAF protections by impersonating Chrome's TLS fingerprint.
     """
     payload = {
         "currencyPair": currency_pair,
         "type": quote_type
     }
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(API_URL, headers=COMMON_HEADERS, json=payload) as response:
-            response.raise_for_status()
-            return await response.json()
+    # impersonate="chrome110" makes our requests look exactly like a real Chrome browser at the TLS handshake level
+    async with requests.AsyncSession(impersonate="chrome110") as session:
+        response = await session.post(API_URL, headers=COMMON_HEADERS, json=payload)
+        response.raise_for_status()
+        return response.json()
