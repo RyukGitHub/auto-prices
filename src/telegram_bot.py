@@ -12,15 +12,18 @@ async def send_telegram_message(gold_buy: str, silver_buy: str, gold_sell: str, 
     if not bot_token or not chat_id:
         raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set in .env")
 
-    message = f"*BUY PRICES*\nGOLD \\- {gold_buy}\nSILVER \\- {silver_buy}\n\n*SELL PRICES*\nGOLD \\- {gold_sell}\nSILVER \\- {silver_sell}"
-    
+    message = (
+        f"*BUY PRICES*\nGOLD \\- {gold_buy}\nSILVER \\- {silver_buy}\n\n"
+        f"*SELL PRICES*\nGOLD \\- {gold_sell}\nSILVER \\- {silver_sell}"
+    )
+
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = {
         "chat_id": chat_id,
         "text": message,
         "parse_mode": "MarkdownV2"
     }
-    
+
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=payload) as response:
             response.raise_for_status()
