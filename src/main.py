@@ -35,13 +35,13 @@ if not bot_token:
 bot = Bot(token=bot_token)
 dp = Dispatcher()
 
-# Include routers (registry LAST — wildcard listener must not intercept other commands)
+# Include routers (deleter MUST be before registry to catch unknown slashes)
 dp.include_router(purge_router)
 dp.include_router(start_router)
 dp.include_router(command_trigger_router)
 dp.include_router(safegold_router)
-dp.include_router(registry_router)
 dp.include_router(deleter_router)
+dp.include_router(registry_router)
 
 
 @asynccontextmanager

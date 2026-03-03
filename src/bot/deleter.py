@@ -17,5 +17,5 @@ async def cmd_unknown(message: types.Message):
         logger.info("Deleting unknown command from Chat ID %s: %s", message.chat.id, message.text)
         try:
             await message.delete()
-        except BaseException as e:
-            logger.error("Failed to delete unknown command: %s", e)
+        except Exception as err:  # pylint: disable=broad-except
+            logger.error("Failed to delete unknown command: %s", err)
