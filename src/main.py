@@ -8,11 +8,14 @@ from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 
-from src.modules.purge import router as purge_router
-from src.modules.registry import router as registry_router
-from src.modules.start import router as start_router
-from src.modules.trigger import router as command_trigger_router
-from src.price_service import process_prices_and_notify
+from src.bot.purge import router as purge_router
+from src.bot.registry import router as registry_router
+from src.bot.start import router as start_router
+from src.bot.trigger import router as command_trigger_router
+from src.bot.safegold import router as safegold_router
+from src.bot.deleter import router as deleter_router
+from src.services.price_service import process_prices_and_notify
+from src.services.safegold_service import process_safegold_and_notify
 
 # Configure standardized logging for the entire application
 logging.basicConfig(
@@ -36,7 +39,9 @@ dp = Dispatcher()
 dp.include_router(purge_router)
 dp.include_router(start_router)
 dp.include_router(command_trigger_router)
+dp.include_router(safegold_router)
 dp.include_router(registry_router)
+dp.include_router(deleter_router)
 
 
 @asynccontextmanager
@@ -81,5 +86,14 @@ async def trigger_quote():
     """Fetch the latest prices and notify Telegram."""
     try:
         return await process_prices_and_notify()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@app.get("/safegold")
+async def trigger_safegold():
+    """Execute SafeGold Robot test and notify Telegram."""
+    try:
+        return await process_safegold_and_notify()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e

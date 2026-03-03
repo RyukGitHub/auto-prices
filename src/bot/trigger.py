@@ -4,7 +4,7 @@ import logging
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
-from src.price_service import process_prices_and_notify
+from src.services.price_service import process_prices_and_notify
 
 logger = logging.getLogger(__name__)
 router = Router(name="trigger")
