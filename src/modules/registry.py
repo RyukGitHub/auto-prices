@@ -35,20 +35,26 @@ async def cmd_getall(message: Message):
     # Only allow fetching from private chats or public groups/channels if permitted
     registry = load_registry()
     
-    if not registry:
-        await message.reply("The chat registry is currently empty. The bot hasn't observed any messages in other channels yet.")
-        return
-
-    response = "🕷️ **Chat Registry:**\n\n"
-    for chat_id, data in registry.items():
-        title = data.get("title", "Unknown Chat")
-        ctype = data.get("type", "unknown")
-        response += f"• **{title}** (`{ctype}`)\n  ID: `{chat_id}`\n\n"
-
     try:
-        await message.reply(response, parse_mode="Markdown")
-    except Exception as e:
-        logger.error(f"Failed to send /getall response: {e}")
+        if not registry:
+            await message.reply("The chat registry is currently empty. The bot hasn't observed any messages in other channels yet.")
+            return
+    
+        response = "🕷️ **Chat Registry:**\n\n"
+        for chat_id, data in registry.items():
+            title = data.get("title", "Unknown Chat")
+            ctype = data.get("type", "unknown")
+            response += f"• **{title}** (`{ctype}`)\n  ID: `{chat_id}`\n\n"
+    
+        try:
+            await message.reply(response, parse_mode="Markdown")
+        except Exception as e:
+            logger.error(f"Failed to send /getall response: {e}")
+    finally:
+        try:
+            await message.delete()
+        except BaseException:
+            pass
 
 @router.channel_post()
 @router.message()

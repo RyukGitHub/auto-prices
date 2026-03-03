@@ -12,6 +12,15 @@ router = Router(name="purge")
 @router.channel_post(Command("purge"))
 @router.message(Command("purge"))
 async def cmd_purge(message: Message):
+    try:
+        await _do_purge(message)
+    finally:
+        try:
+            await message.delete()
+        except Exception:
+            pass
+
+async def _do_purge(message: Message):
     """
     Deletes a batch of recent messages.
     Usage 1: /purge 10 -> Deletes the last 10 messages.

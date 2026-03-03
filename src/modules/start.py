@@ -24,16 +24,20 @@ async def cmd_start(message: Message):
     except Exception as e:
         logger.error(f"Failed to respond to /start command: {e}")
 
-    # 2) Try to blindly delete the trigger message to sanitize public feeds
-    if message.chat.type in ["group", "supergroup", "channel"]:
+    finally:
+        # 2) Try to blindly delete the trigger message to sanitize public feeds
         try:
             await message.delete()
-            logger.info(f"Deleted original /start command in {message.chat.type}.")
+            if message.chat.type in ["group", "supergroup", "channel"]:
+                logger.info(f"Deleted original /start command in {message.chat.type}.")
         except TelegramBadRequest as e:
-            logger.warning(f"Lacking Delete Privileges. Error: {e}")
-            try:
-                # Explicitly warn the chat that the Bot needs higher Admin rights
-                warning_text = "⚠️ Warning: I failed to auto-delete the `/start` command because I do not have the **'Delete messages'** Admin permission in this chat!"
-                await message.bot.send_message(chat_id=message.chat.id, text=warning_text, parse_mode="Markdown")
-            except Exception:
-                pass
+            if message.chat.type in ["group", "supergroup", "channel"]:
+                logger.warning(f"Lacking Delete Privileges. Error: {e}")
+                try:
+                    # Explicitly warn the chat that the Bot needs higher Admin rights
+                    warning_text = "⚠️ Warning: I failed to auto-delete the `/start` command because I do not have the **'Delete messages'** Admin permission in this chat!"
+                    await message.bot.send_message(chat_id=message.chat.id, text=warning_text, parse_mode="Markdown")
+                except Exception:
+                    pass
+        except Exception:
+            pass
