@@ -1,9 +1,7 @@
 services:
   - type: web
     name: prices
-    env: python
-    buildCommand: pip install -r requirements.txt && rfbrowser init
-    startCommand: uvicorn src.main:app --host 0.0.0.0 --port $PORT
+    env: docker
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
