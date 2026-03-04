@@ -12,10 +12,8 @@ router = Router(name="getall_cmd")
 @router.channel_post(Command("getall"))
 @router.message(Command("getall"))
 async def cmd_getall(message: Message):
-    """
-    Retrieves the list of all autonomously cached Channel and Group IDs.
-    """
-    # Only allow fetching from private chats or public groups/channels if permitted
+    """Retrieves all cached Channel and Group IDs."""
+    # Only allow fetching from private chats or public groups if permitted
     registry = load_registry()
 
     try:

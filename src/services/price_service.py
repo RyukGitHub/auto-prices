@@ -1,4 +1,4 @@
-"""Orchestrates the price fetch, drop detection, and Telegram notification pipeline."""
+"""Service layer for price fetch and Telegram notification."""
 import logging
 
 from src.api_client import get_quote
@@ -8,12 +8,16 @@ from src.database import db
 logger = logging.getLogger(__name__)
 
 
-async def _fetch_validated_price(currency_pair: str, name: str, quote_type: str = "BUY") -> str:
+async def _fetch_validated_price(
+    currency_pair: str, name: str, quote_type: str = "BUY"
+) -> str:
     """Fetch a single price and validate the expected field exists."""
     data = await get_quote(currency_pair, quote_type)
     price_str = data.get("preTaxAmount")
     if not price_str:
-        raise ValueError(f"preTaxAmount not found in {name} ({quote_type}) response: {data}")
+        error_msg = (f"preTaxAmount not found in {name} "
+                     f"({quote_type}) response: {data}")
+        raise ValueError(error_msg)
     return price_str
 
 
@@ -28,13 +32,20 @@ async def process_prices_and_notify() -> dict:
     6) Returns a status dict for the FastAPI response.
     """
     try:
-        # 1. Fetch all four prices concurrently could be added here with asyncio.gather
-        gold_buy_str = await _fetch_validated_price("XAU/INR", "Gold", "BUY")
+        # 1. Fetch all four prices concurrently
+        # (could be added here with asyncio.gather)
+        gold_buy_str = await _fetch_validated_price(
+            "XAU/INR", "Gold", "BUY"
+        )
         gold_buy_float = float(gold_buy_str)
-        silver_buy_str = await _fetch_validated_price("XAG/INR", "Silver", "BUY")
+        silver_buy_str = await _fetch_validated_price(
+            "XAG/INR", "Silver", "BUY"
+        )
 
         gold_sell_str = await _fetch_validated_price("XAU/INR", "Gold", "SELL")
-        silver_sell_str = await _fetch_validated_price("XAG/INR", "Silver", "SELL")
+        silver_sell_str = await _fetch_validated_price(
+            "XAG/INR", "Silver", "SELL"
+        )
 
         # 2. Format all values for MarkdownV2 (escape dots)
         previous_gold_buy = db.get_previous_gold_price()
@@ -44,7 +55,11 @@ async def process_prices_and_notify() -> dict:
         silver_sell_md = silver_sell_str.replace(".", "\\.")
 
         # 3. Bold the Gold BUY price if it dropped since the last run
-        if previous_gold_buy is not None and gold_buy_float < previous_gold_buy:
+        price_dropped = (
+            previous_gold_buy is not None
+            and gold_buy_float < previous_gold_buy
+        )
+        if price_dropped:
             formatted_gold_buy = f"*{formatted_gold_buy}*"
 
         # 4. Persist the new state
@@ -58,7 +73,7 @@ async def process_prices_and_notify() -> dict:
 
         return {
             "status": "success",
-            "message": "Prices fetched and Telegram channel notified successfully.",
+            "message": "Prices fetched and notified successfully.",
         }
     except Exception as e:
         logger.error("Price processing pipeline failed: %s", e, exc_info=True)

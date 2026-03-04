@@ -1,4 +1,4 @@
-"""Async Telegram messaging client for broadcasting price updates via the Bot API."""
+"""Async Telegram messaging client for broadcasting price updates."""
 import os
 from typing import Dict, Any
 
@@ -11,12 +11,14 @@ async def send_telegram_message(
     gold_sell: str,
     silver_sell: str,
 ) -> Dict[str, Any]:
-    """Broadcasts the formatted Buy/Sell price matrix to the configured Telegram Chat."""
+    """Broadcasts the Buy/Sell price matrix to the Telegram Chat."""
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
     if not bot_token or not chat_id:
-        raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set in .env")
+        error_msg = ("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID "
+                     "must be set in .env")
+        raise ValueError(error_msg)
 
     message = (
         f"*BUY PRICES*\nGOLD \\- {gold_buy}\nSILVER \\- {silver_buy}\n\n"
@@ -42,7 +44,9 @@ async def send_custom_message(text: str) -> Dict[str, Any]:
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
     if not bot_token or not chat_id:
-        raise ValueError("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set in .env")
+        raise ValueError(
+            "TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set in .env"
+        )
 
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = {

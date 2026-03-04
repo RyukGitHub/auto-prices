@@ -1,4 +1,4 @@
-"""Purge command handler: bulk-deletes recent messages in Groups and Channels."""
+"""Purge command handler: bulk-deletes messages in Groups/Channels."""
 import logging
 import asyncio
 from aiogram import Router
@@ -27,10 +27,13 @@ async def _do_purge(message: Message):
     """
     Deletes a batch of recent messages.
     Usage 1: /purge 10 -> Deletes the last 10 messages.
-    Usage 2: Reply to a message with /purge -> Deletes from replied message to current one.
+    Usage 2: Reply with /purge -> Deletes from replied message to current one.
     """
     if message.chat.type == "private":
-        await message.reply("The `/purge` command is only available in Groups and Channels.", parse_mode="Markdown")
+        await message.reply(
+            "The `/purge` command is only available in Groups and Channels.",
+            parse_mode="Markdown"
+        )
         return
 
     if message.reply_to_message:
@@ -50,19 +53,23 @@ async def _purge_by_reply(message: Message):
     for i in range(0, len(message_ids), chunk_size):
         chunk = message_ids[i:i + chunk_size]
         try:
-            await message.bot.delete_messages(chat_id=chat_id, message_ids=chunk)
+            await message.bot.delete_messages(
+                chat_id=chat_id, message_ids=chunk
+            )
         except TelegramBadRequest as err:
-            logger.warning("Partial failure during bulk purge in %s. Error: %s", chat_id, err)
+            logger.warning(
+                "Partial failure during bulk purge in %s. Error: %s",
+                chat_id, err
+            )
 
 
 async def _purge_by_count(message: Message):
-    """Deletes a specific number of recent messages. Note: deletes based on ID tracking."""
+    """Deletes a specific number of messages based on ID tracking."""
     parts = message.text.split(maxsplit=1)
     if len(parts) < 2 or not parts[1].isdigit():
-        warning = await message.reply(
-            "⚠️ Invalid usage.\nReply to a message with `/purge` or type `/purge 10`.",
-            parse_mode="Markdown"
-        )
+        error_msg = ("⚠️ Invalid usage.\nReply with `/purge` "
+                     "or type `/purge 10`.")
+        warning = await message.reply(error_msg, parse_mode="Markdown")
         await asyncio.sleep(5)
         try:
             await warning.delete()
@@ -73,9 +80,11 @@ async def _purge_by_count(message: Message):
     count = int(parts[1])
     if count <= 0:
         return
-        
+
     # Give user feedback since ID sweeping isn't instant
-    status_msg = await message.reply(f"🧹 Sweeping last {count} message IDs...")
+    status_msg = await message.reply(
+        f"🧹 Sweeping last {count} message IDs..."
+    )
 
     search_id = message.message_id
     chat_id = message.chat.id
@@ -92,7 +101,7 @@ async def _purge_by_count(message: Message):
             await message.bot.delete_messages(chat_id=chat_id, message_ids=chunk_ids)
         except TelegramBadRequest as err:
             logger.warning("Partial failure during bulk purge by count. Error: %s", err)
-            
+        
         deleted_count += chunk_needed
         search_id -= chunk_needed
         

@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 router = Router(name="trigger")
 
 
-@router.channel_post(Command("trigger"))
-@router.message(Command("trigger"))
-async def cmd_trigger(message: Message):
+@router.channel_post(Command("mm"))
+@router.message(Command("mm"))
+async def cmd_mm(message: Message):
     """
     Triggers the price fetch sequence.
     Restricted to messages sent from TELEGRAM_CHAT_ID.
@@ -40,7 +40,7 @@ async def cmd_trigger(message: Message):
 
         try:
             # Run the same core code the FastAPI endpoint uses!
-            # This will send the actual message out to TELEGRAM_CHAT_ID natively
+            # Send the actual message out to TELEGRAM_CHAT_ID natively
             await process_prices_and_notify()
 
             # We can clean up our status message since it worked
@@ -52,7 +52,9 @@ async def cmd_trigger(message: Message):
             error_text = f"❌ Failed to fetch prices: `{e}`"
 
             if status_message:
-                await status_message.edit_text(error_text, parse_mode="Markdown")
+                await status_message.edit_text(
+                    error_text, parse_mode="Markdown"
+                )
             elif message.chat.type != "channel":
                 await message.reply(error_text, parse_mode="Markdown")
     finally:
