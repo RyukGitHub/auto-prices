@@ -50,10 +50,10 @@ async def get_quote(currency_pair: str = "XAU/INR", quote_type: str = "BUY") -> 
 
 async def get_safegold_quote() -> Dict[str, Any]:
     """
-    Fetches the latest SafeGold buy price via their internal API.
+    Fetches the latest SafeGold buy and sell prices via their internal APIs.
     Bypasses WAF by spoofing TLS and handling the TID/JWT handshake.
     """
-    headers = {
+    headers_www = {
         'Accept': 'application/json, text/plain, */*',
         'Content-Type': 'application/json;charset=UTF-8',
         'Origin': 'https://www.safegold.com',
@@ -63,30 +63,37 @@ async def get_safegold_quote() -> Dict[str, Any]:
 
     async with requests.AsyncSession(impersonate="chrome110") as session:
         # 1. Get Transaction ID (TID)
-        tid_resp = await session.get("https://www.safegold.com/get-tid", headers=headers)
+        tid_resp = await session.get("https://www.safegold.com/get-tid", headers=headers_www)
         tid_resp.raise_for_status()
         tid = tid_resp.json().get("tid")
 
-        # 2. Fetch Buy Rate (Base64 for 'buy-rate')
-        payload = {"csrf": tid, "upi": 0}
+        # 2. Fetch Buy Rate (POST to www.safegold.com)
+        payload_buy = {"csrf": tid, "upi": 0}
         buy_url = "https://www.safegold.com/YnV5LXJhdGU="
+        buy_resp = await session.post(buy_url, headers=headers_www, json=payload_buy)
+        buy_resp.raise_for_status()
         
-        response = await session.post(buy_url, headers=headers, json=payload)
-        response.raise_for_status()
-        
-        # 3. Decode JWT response
-        jwt_token = response.text
-        _, payload_b64, _ = jwt_token.split('.')
-        payload_b64 += '=' * (-len(payload_b64) % 4)
-        payload_data = json.loads(base64.b64decode(payload_b64))
-        
-        # 4. Extract data
-        data_b64 = payload_data.get("data")
-        if not data_b64:
-            raise ValueError("No data found in SafeGold API response")
-            
-        data = json.loads(base64.b64decode(data_b64))
+        # Decode Buy JWT
+        _, buy_payload_b64, _ = buy_resp.text.split('.')
+        buy_payload_b64 += '=' * (-len(buy_payload_b64) % 4)
+        buy_data_b64 = json.loads(base64.b64decode(buy_payload_b64)).get("data")
+        buy_data = json.loads(base64.b64decode(buy_data_b64))
+
+        # 3. Fetch Sell Rate (GET from website-backend using TID as Bearer)
+        sell_url = 'https://website-backend.safegold.com/api/v1/metal/prices/sell/gold_9999'
+        headers_sell = {
+            'accept': 'application/json',
+            'authorization': f'Bearer {tid}',
+            'origin': 'https://app.safegold.com',
+            'referer': 'https://app.safegold.com/',
+            'x-sg-captcha-action': 'gold_price'
+        }
+        sell_resp = await session.get(sell_url, headers=headers_sell)
+        sell_resp.raise_for_status()
+        sell_data = sell_resp.json()
+
         return {
-            "preTaxAmount": data.get("rate"),
+            "buy": buy_data.get("rate"),
+            "sell": sell_data.get("rate"),
             "source": "SafeGold"
         }

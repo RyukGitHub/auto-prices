@@ -35,8 +35,8 @@ async def cmd_safegold(message: Message):
             use_cache = False
 
         status_text = (
-            "⏳ Fetching SG price (cache=Off)..." if not use_cache
-            else "⏳ Fetching SG price (cache=On)..."
+            "⏳ Fetching SG prices (cache=Off)..." if not use_cache
+            else "⏳ Fetching SG prices (cache=On)..."
         )
         status_message = None
         if message.chat.type != "channel":
