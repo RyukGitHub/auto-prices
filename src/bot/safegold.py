@@ -16,7 +16,7 @@ async def cmd_safegold(message: Message):
     """
     Triggers the SafeGold price fetch sequence.
     Restricted to messages sent from TELEGRAM_CHAT_ID.
-    Usage: /safegold (no cache) or /safegold cache (with cache)
+    Usage: /safegold
     """
     authorized_chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
@@ -29,15 +29,7 @@ async def cmd_safegold(message: Message):
             logger.warning("Unauthorized /safegold in Chat ID: %s", message.chat.id)
             return
 
-        # Default to using cache. Only disable if 'no-cache' is explicitly provided.
-        use_cache = True
-        if message.text and "no-cache" in message.text.lower():
-            use_cache = False
-
-        status_text = (
-            "⏳ Fetching SG prices (cache=Off)..." if not use_cache
-            else "⏳ Fetching SG prices (cache=On)..."
-        )
+        status_text = "⏳ Fetching SG prices..."
         status_message = None
         if message.chat.type != "channel":
             try:
@@ -46,7 +38,7 @@ async def cmd_safegold(message: Message):
                 pass
 
         try:
-            await process_safegold_and_notify(use_cache=use_cache)
+            await process_safegold_and_notify()
 
             if status_message:
                 await status_message.delete()

@@ -7,7 +7,7 @@ from src.database import db
 logger = logging.getLogger(__name__)
 
 
-async def process_safegold_and_notify(use_cache: bool = True) -> dict:  # pylint: disable=unused-argument
+async def process_safegold_and_notify() -> dict:
     """
     Fetches SafeGold prices via direct API and notifies Telegram.
     This bypasses WAF using TLS spoofing.
