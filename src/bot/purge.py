@@ -88,9 +88,9 @@ async def _purge_by_count(message: Message):
 
     search_id = message.message_id
     chat_id = message.chat.id
-    
-    # We must sweep 'count' number of IDs backwards. 
-    # Because telegram silently ignores missing IDs in bulk_delete, 
+
+    # We must sweep 'count' number of IDs backwards.
+    # Because telegram silently ignores missing IDs in bulk_delete,
     # we just provide the chunks!
     deleted_count = 0
     while deleted_count < count and search_id > 0:
@@ -98,7 +98,9 @@ async def _purge_by_count(message: Message):
         chunk_ids = list(range(max(1, search_id - chunk_needed + 1), search_id + 1))
 
         try:
-            await message.bot.delete_messages(chat_id=chat_id, message_ids=chunk_ids)
+            await message.bot.delete_messages(
+                chat_id=chat_id, message_ids=chunk_ids
+            )
         except TelegramBadRequest as err:
             logger.warning("Partial failure during bulk purge by count. Error: %s", err)
         

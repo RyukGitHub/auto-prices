@@ -1,4 +1,4 @@
-"""Telegram /trigger command: authorized price fetch, restricted to TELEGRAM_CHAT_ID."""
+"""Telegram /trigger command: authorized price fetch for TELEGRAM_CHAT_ID."""
 import os
 import logging
 from aiogram import Router
@@ -26,15 +26,16 @@ async def cmd_mm(message: Message):
     try:
         # Verify that the message originated from the authorized chat
         if str(message.chat.id) != str(authorized_chat_id):
-            # We silently ignore unauthorized triggers to prevent abuse
-            logger.warning("Unauthorized /trigger in Chat ID: %s", message.chat.id)
+            msg = f"Unauthorized trigger in chat {message.chat.id}"
+            logger.warning(msg)
             return
 
         # Acknowledge receipt first to avoid a timeout feeling
         status_message = None
         if message.chat.type != "channel":
             try:
-                status_message = await message.reply("⏳ Fetching latest prices...")
+                msg_text = "⏳ Fetching latest prices..."
+                status_message = await message.reply(msg_text)
             except BaseException:
                 pass
 
