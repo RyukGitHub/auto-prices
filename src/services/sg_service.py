@@ -32,7 +32,7 @@ async def process_sg_and_notify() -> dict:
 
         # 5. Notify Telegram
         message = (
-            "SG\n"
+            "SAFEGOLD\n"
             f"BUY: ₹ {buy_md} /g\n"
             f"SELL: ₹ {sell_md} /g"
         )
